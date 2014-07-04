@@ -1,5 +1,5 @@
-storiq-lib-raid
-===============
+storiq-raid-control
+===================
 
 This is the RAID monitoring StorIQ tool.
 
