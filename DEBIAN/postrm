@@ -1,0 +1,21 @@
+#!/bin/sh
+
+/etc/init.d/raid_monitor stop
+
+grep -v "raid_monitor" /etc/syslog.conf > /etc/syslog.conf.tmp
+rm -f /etc/syslog.conf
+mv -f /etc/syslog.conf.tmp /etc/syslog.conf
+
+grep -v "raid_monitor" /etc/rsyslog.conf > /etc/rsyslog.conf.tmp
+rm -f /etc/rsyslog.conf
+mv -f /etc/rsyslog.conf.tmp /etc/syslog.conf
+
+
+rm -f /dev/raid_monitor
+
+/etc/init.d/sysklogd	restart 2>/dev/null
+/etc/init.d/klogd	restart 2>/dev/null
+/etc/init.d/rsyslog	restart 2>/dev/null
+
+rm -f /etc/rc*.d/*raid_monitor
+rm -f /etc/rc*.d/*raid_control

@@ -1,0 +1,152 @@
+#! /usr/bin/perl
+#########################
+
+use strict;
+use warnings;
+
+use Sys::Syslog;
+use raid_control;
+
+use Objet_Alerte;    # Objet d envoie d email Intellique
+
+#########################
+
+$| = 1;
+
+my $fifo    = '/dev/raid_monitor';
+my $logfile = '/var/log/storiq/raid_monitor';
+
+# my $filet	= "/var/log/storiq/raid_monitor_test";
+my $PIDFILE = '/var/run/raid_monitor.pid';
+
+#########################
+# Debug
+my $DEBUG = 0;
+use Data::Dumper;
+
+#########################
+# init
+
+_daemonize($logfile);
+
+print "raid_monitor starting up.\n";
+
+unless ( -f $PIDFILE ) {
+    set_pidfile($PIDFILE);
+} else {
+    open my $fh, "<$PIDFILE" or die "can't open $PIDFILE: $!";
+    my $runningpid = <$fh>;
+    warn "PID $runningpid already running.\n";
+
+    unless ( kill 0, $runningpid ) {
+        warn "Not running, overwriting pidfile.\n";
+        set_pidfile($PIDFILE);
+    } else {
+        die "Exiting.\n";
+    }
+}
+
+# never exit...
+while (1) {
+
+    unless ( -p $fifo ) {
+        system( 'mkfifo', $fifo ) == 0 or die "Couldn't create $fifo : $!";
+    }
+
+    open( FIFO, "< $fifo" ) or die "Read $fifo impossible : $!";
+
+    # je crée l'objet logger
+    my ( undef, $logger ) = new Objet_Logger($logfile);
+
+##################################
+    # main loop
+
+    while (<FIFO>) {
+
+        # Beware : only local controllers (not FC) will trace in kernel messages
+        # Beware : Only 3Ware driver seems to log messages to the system log alas.
+
+        # 3Ware
+        if ( $_ =~ m/kernel\s*:\s(3w-|raid|md)/ ) {
+
+            print "DEBUG: 3Ware or mdadm\n" if $DEBUG;
+            check($logger);
+        }
+
+        # Adaptec or Areca(?)
+        elsif ( $_ =~ m/kernel: sd (\d+:\d+:\d+:\d+):/ ) {
+            my $command = qx(/usr/bin/lsscsi $1);
+
+            if ( $command =~ /raid/i ) {
+                print "DEBUG: adaptec or areca\n" if $DEBUG;
+                check($logger);
+
+            }
+        } 
+		# forced manual check
+		elsif ( $_ =~ /check/ ) {
+			check($logger);			
+		} else {
+            print "DEBUG: nothing important\n" if $DEBUG;
+        }
+    }
+}
+
+###################################
+# subs
+
+sub _daemonize {
+
+    # Provoque la démonisation du programme.
+    my $log = shift;
+
+    chdir '/'
+      or die('Impossible de changer de répertoire!');
+
+    open( STDIN, '</dev/null' )
+      or die("Impossible de rediriger STDIN : $!");
+    open( STDERR, ">>$log" )
+      or die("Impossible de rediriger STDERR : $!");
+    open( STDOUT, ">>$log" )
+      or die("Impossible de rediriger STDOUT : $!");
+
+    fork and exit 0;
+
+    return 1;
+}
+
+sub set_pidfile {
+    my $pidfile = shift;
+
+    open my $fh, "> $pidfile"
+      or die("Couldn't write the pid $pidfile : $!");
+    print $fh $$;
+    close $fh;
+
+}
+
+sub log_message {
+    my $logger  = shift;
+    my $errcode = shift;
+    my $line    = shift;
+
+    my $message;
+
+    if ( ref $line eq "ARRAY" ) {
+        foreach my $message (@$line) {
+            $logger->info($message);
+        }
+    }
+
+    $errcode = -1 unless ( defined $errcode );
+    return $errcode;
+}
+
+sub check {
+
+    my $logger = shift;
+
+    # check all controllers
+    log_message( $logger, raid_control::control( $logger, 'alert' ) );
+
+}

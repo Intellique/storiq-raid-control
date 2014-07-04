@@ -1,0 +1,8 @@
+/var/log/storiq/raid_control {
+        monthly
+        missingok
+        rotate 12
+        compress
+        notifempty
+        create 644 root root
+}

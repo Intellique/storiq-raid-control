@@ -1,0 +1,67 @@
+#!/bin/sh
+
+if [ ! -p /dev/raid_monitor ]; then
+    /usr/bin/mkfifo /dev/raid_monitor
+fi
+
+# when using syslogd and klogd
+if [ -f /sbin/syslogd ]; then
+
+	#rewrite previous configuration
+
+	perl -pi -e 's#kern.*/dev/raid_monitor##g' /etc/syslog.conf 
+	echo ""
+	echo "kern.*		|/dev/raid_monitor" >> /etc/syslog.conf
+
+	/etc/init.d/sysklogd	restart
+	/etc/init.d/klogd		restart
+
+
+
+	if [ -e "/etc/default/klogd" ] ; then
+		perl -pi -e 's/^KLOGD.*/KLOGD="-x"/' /etc/default/klogd
+	else
+		echo '#
+# top configuration file for klogd
+#
+
+#
+# Full documentation of possible arguments are found in the manpage
+# klogd(8).
+#
+
+#
+# Use KLOGD=-k /boot/System.map-2.6.24.7-storiq64-smp to specify System.map
+# -c 4 to alter the kernel console log level (deprecated)
+#   use sysctl instead
+#
+KLOGD="-x"' > /etc/default/klogd
+
+	fi
+# when using rsyslog
+elif [  -f /usr/sbin/rsyslogd ]; then
+	perl -pi -e 's#kern.*/dev/raid_monitor##g' /etc/rsyslog.conf 
+	echo ""
+	echo "kern.*		|/dev/raid_monitor" >> /etc/rsyslog.conf
+
+	/etc/init.d/rsyslog	restart
+	
+fi
+	
+
+if [ -e "/sbin/chkconfig" ] ; then
+    /sbin/chkconfig raid_monitor on
+    /sbin/chkconfig raid_control on
+else
+    rm -f /etc/rc*.d/*raid_monitor
+    /bin/ln -s /etc/init.d/raid_monitor  /etc/rc0.d/K94raid_monitor
+    /bin/ln -s /etc/init.d/raid_monitor  /etc/rc1.d/K94raid_monitor
+    /bin/ln -s /etc/init.d/raid_monitor  /etc/rcS.d/S30raid_monitor
+    /bin/ln -s /etc/init.d/raid_monitor  /etc/rc6.d/K94raid_monitor
+
+    /bin/ln -s /etc/init.d/raid_control  /etc/rc3.d/S90raid_control
+    /bin/ln -s /etc/init.d/raid_control  /etc/rc4.d/S90raid_control
+    /bin/ln -s /etc/init.d/raid_control  /etc/rc5.d/S90raid_control
+fi
+
+/etc/init.d/raid_monitor	start

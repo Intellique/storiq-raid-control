@@ -1,0 +1,60 @@
+#-*- mode: shell-script;-*-
+
+# Raid completion for Intellique
+#
+have raid_control &&
+_raid_control() {
+	local cur prev special i options
+
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	list_ctl=$( raid_cli list_ctl )
+	options="$list_ctl --help -h --test_alert --detect --format -f"
+
+	list_ctl2=$( echo $list_ctl | sed s/' '/\|/g )
+	options2=$( echo $options | sed s/' '/\|/g )
+
+	for (( i=0; i < ${#COMP_WORDS[@]}-1; i++ )); do
+		if [[ ${COMP_WORDS[i]} == @($options2) ]]; then
+			special=${COMP_WORDS[i]}
+		fi
+	done
+
+	if [ -n "$special" ]; then
+
+		case $special in
+		--format|-f)
+			if [[ "$prev" == "$special" ]]; then
+			    COMPREPLY=( $( compgen -W "nagios alert" | grep ^$cur ) )
+			elif [[ "$prev" == "alert" ]] || [[ "$prev" == "nagios" ]]; then
+			    COMPREPLY=( $( raid_cli list_ctl | grep ^$cur ) )
+			elif [[ ${COMP_WORDS[COMP_CWORD-2]} == "alert" ]]; then
+			    COMPREPLY=( $( raid_cli list_unit $prev | grep ^$cur ) )
+			elif [[ ${COMP_WORDS[COMP_CWORD-2]} == "nagios" ]]; then
+			    COMPREPLY=( $( raid_cli list_unit $prev | grep ^$cur ) )
+			else
+			    return 0
+			fi
+
+			return 0
+			;;
+		--help|-h|--test_alert|--detect)
+			return 0
+			;;
+		*)
+			if [[ $prev == @($list_ctl2) ]]; then
+			    COMPREPLY=( $( raid_cli list_unit $prev | grep ^$cur ) )
+			fi
+	
+			return 0
+			;;
+		esac
+	fi
+
+	COMPREPLY=( $( compgen -W "$options" -- $cur ) )
+	
+	return 0
+}
+			    
+[ -n "${have:-}" ] && complete -F _raid_control $filenames raid_control

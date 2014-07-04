@@ -1,0 +1,12 @@
+Package: storiq-raid-control
+Version: 2.3.7
+Section: Intellique
+Priority: optional
+Architecture: all
+Pre-Depends: linux-kernel-log-daemon, system-log-daemon
+Depends: storiq-lib-raid, storiq-objet-alerte(>=2.1.3), storiq-objet-conf(>=1.2)
+Conflicts: raid-control
+Replaces: raid-control, storiq-control-disk
+Maintainer: Developpers Team <dev@intellique.com>
+Description: Raid Control
+ Utilitaire en ligne de commande de la surveillance des raids.

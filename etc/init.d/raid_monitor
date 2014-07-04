@@ -1,0 +1,96 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Default-Start:     S
+# Default-Stop:      
+# Required-Start:
+# Required-Stop:
+# Provides: raid_monitor
+# Short-Description: Start the RAID monitor daemon for the storiq system
+# Description:       RAID monitor for the storiq system
+### END INIT INFO
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="the RAID monitor daemon"
+NAME=raid_monitor
+DAEMON=/usr/sbin/$NAME
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+. /lib/lsb/init-functions
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+	pidofproc $NAME > /dev/null
+	RETCODE=$?
+
+	case $RETCODE in
+	  0)
+		return 1
+	  ;;
+	  1)
+		return 1
+	  ;;
+	  3)
+	    start_daemon $DAEMON
+		return $?
+	  ;;
+	  4)
+		return 2
+	  ;;
+	  *)
+	    echo
+		return $RETCODE
+	  ;;
+	 esac	
+}	
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+	RETVAL="$?"
+	[ "$RETVAL" = 2 ] && return 2
+
+	start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
+	[ "$?" = 2 ] && return 2
+
+	rm -f $PIDFILE
+	return 0
+}
+
+
+case "$1" in
+    start)
+        log_daemon_msg "Starting $DESC" "$NAME"
+        do_start
+        log_end_msg $?
+    ;;
+    stop)
+        log_daemon_msg "Stopping $DESC" "$NAME"
+        do_stop
+        log_end_msg $?
+    ;;
+    restart)
+        log_daemon_msg "Restarting $DESC" "$NAME"
+        do_stop
+        do_start
+        log_end_msg $?
+    ;;
+    status)
+        status $NAME
+    ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|status}" >&2
+        exit 3
+    ;;
+esac
+:

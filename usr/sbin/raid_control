@@ -1,0 +1,166 @@
+#! /usr/bin/perl
+## ######### PROJECT NAME : ##########
+##
+## raid_control
+##
+## ######### PROJECT DESCRIPTION : ###
+##
+## Controles des raids et des disques
+##
+## ###################################
+
+#####################################
+## Declaration de librairie
+
+use strict;
+use warnings;
+
+use Getopt::Long;    # parametres ligne de commande
+
+use Data::Dumper;
+
+use raid_control;
+use Objet_Logger;    # Objet de log
+
+## ###################################
+## Declaration de variables globales
+
+my $test_alert;
+my $create_conf_file;
+
+my $format   = 'nagios';
+my $file_log = '/var/log/storiq/raid_control';
+
+my %possible_format = (
+    'alert'  => undef,
+    'nagios' => undef,
+);
+
+#####################################
+# Verification que le user est root
+# if ( $< != 0 ) {
+#     print "You must be root.\n";
+#     exit 1;
+# }
+
+## ###################################
+# Initialisation des parametres depuis la ligne de commande
+getCLOptions();
+
+help() unless ( exists $possible_format{$format} );
+
+my $logger;
+
+if ( $format eq 'alert' ) {
+    ( undef, $logger ) = new Objet_Logger($file_log);
+}
+elsif ($test_alert) {
+    ( undef, $logger ) = new Objet_Logger($file_log);
+    affiche_et_sort( raid_control::test_alert($logger) );
+}
+else {
+    ( undef, $logger ) = new Objet_Logger();
+    $logger->set_conf(
+        \qq{
+		log4perl.logger                                     = ALL, LOG-INFO, LOG-WARN
+		
+		log4perl.appender.LOG-WARN                          = Log::Log4perl::Appender::Screen
+		log4perl.appender.LOG-WARN.stderr                   = 1
+		log4perl.appender.LOG-WARN.layout                   = Log::Log4perl::Layout::PatternLayout
+		log4perl.appender.LOG-WARN.layout.ConversionPattern = %m %n
+		log4perl.appender.LOG-WARN.Filter                   = FILTER-WARN
+		log4perl.filter.FILTER-WARN                         = Log::Log4perl::Filter::LevelRange
+		log4perl.filter.FILTER-WARN.LevelMin                = WARN
+		log4perl.filter.FILTER-WARN.LevelMax                = OFF
+		log4perl.filter.FILTER-WARN.AcceptOnMatch           = true
+		
+		log4perl.appender.LOG-INFO                          = Log::Log4perl::Appender::Screen
+		log4perl.appender.LOG-INFO.stderr                   = 0
+		log4perl.appender.LOG-INFO.layout                   = Log::Log4perl::Layout::PatternLayout
+		log4perl.appender.LOG-INFO.layout.ConversionPattern = %m %n
+		log4perl.appender.LOG-INFO.Filter                   = FILTER-INFO
+		log4perl.filter.FILTER-INFO                         = Log::Log4perl::Filter::LevelMatch
+		log4perl.filter.FILTER-INFO.LevelToMatch            = INFO
+		log4perl.filter.FILTER-INFO.AcceptOnMatch           = true
+    }
+    );
+}
+
+if ($create_conf_file) {
+    affiche_et_sort( raid_control::create_conf_file($logger) );
+}
+
+affiche_et_sort(
+    raid_control::control( $logger, $format, $ARGV[0], $ARGV[1] ) );
+
+exit;
+
+#####################################
+## Fonctions
+## ###################################
+
+## Help
+
+sub help {
+    print <<USAGE;
+
+usage:
+        raid_control [options ...]
+
+options:
+    --help|h              	this screen
+    --test_alert         	test email and snmp trap sending
+    --detect
+    --format|f	nagios      nagios format output
+	            alert       email and snmp trap output
+
+See 'man raid_control' for more information.
+USAGE
+
+    exit 0;
+}
+
+#################################################################
+### Fonctions private
+#################################################################
+
+sub getCLOptions {
+    Getopt::Long::Configure('no_ignore_case');
+    unless (
+        GetOptions(
+            'help|h'     => \&help,
+            'test_alert' => \$test_alert,
+            'format|f=s' => \$format,
+            'detect'     => \$create_conf_file,
+			'debug' 	 => \&debug_display,
+        )
+        )
+    {
+        help();
+    }
+}
+
+sub affiche_et_sort {
+    my $code = shift;
+    foreach my $mess (@_) {
+        next unless $mess;
+
+        if ( ref $mess eq "ARRAY" ) {
+            foreach my $mess2 ( @{$mess} ) {
+                $logger->info($mess2);
+            }
+        }
+        else {
+            $logger->info($mess);
+        }
+    }
+    $code = -1 unless ( defined $code );
+    exit $code;
+}
+
+sub debug_display {
+	print "#### Debug ####\n";
+	my $all_ctl_info = Lib_Raid_Rpc::get_all_info();
+	print Dumper $all_ctl_info;
+}
+

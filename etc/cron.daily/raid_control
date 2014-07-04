@@ -1,0 +1,7 @@
+#!/bin/sh
+# /etc/cron.daily/raid_control
+
+[ -x /usr/sbin/raid_control ] || exit 0
+
+/usr/sbin/raid_control -format alert && exit 0 || exit 1
+

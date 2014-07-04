@@ -1,0 +1,15 @@
+default = Message d'erreur non trouve [code : $$]
+
+[MAIL]
+sujet = STORIQ $$: $$ ($$)
+
+message_test    = Le serveur $$ ($$) vous envoie cet e-mail afin de tester son systeme d'alerte par e-mail.
+message_ok      = Bonjour,\n\nle serveur $$ ($$) vous signale que tous les elements disques et raids sont dans un état cohérent.\n
+message         = Bonjour,\n\nvoici les informations sur le RAID du NAS $$ ($$) :\n\n$$\n\nLe service technique INTELLIQUE.\n\nsupport@intellique.com\nTél 01 78 94 84 00\n
+
+
+[SNMP]
+message_test    = Le serveur $$ ($$) vous envoie ce message afin de tester son systeme d'alerte par SNMP.
+message_ok      = Le serveur $$ ($$) vous signale que tous les elements disques et raids sont dans un état cohérent.
+message         = STORIQ $$: $$ ($$) : $$
+

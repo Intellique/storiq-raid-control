@@ -1,0 +1,15 @@
+default = Error message not found [code : $$]
+
+[MAIL]
+sujet = STORIQ $$: $$ ($$)
+
+message_test    = The NAS server $$ ($$) sends this email in order to test its email alert system.
+message_ok      = Hello,\n\nthe NAS server $$ ($$) informs you that all drives and RAID arrays are in an optimal state.\n
+message         = Hello,\n\ninformations about NAS $$ ($$) RAID arrays :\n\n$$\n\nINTELLIQUE Support.\n\nsupport@intellique.com\nPhone +33 (0)1 78 94 84 00\n
+
+
+[SNMP]
+message_test    = The NAS server $$ ($$) sends this email in order to test its SNMP alert system.
+message_ok      = The NAS server $$ ($$) informs you that all drives and RAID arrays are in an optimal state.
+message         = STORIQ $$: $$ ($$) : $$
+

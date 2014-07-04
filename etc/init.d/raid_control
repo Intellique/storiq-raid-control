@@ -1,0 +1,56 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Required-Start:
+# Required-Stop:
+# Provides: raid_control
+# Short-Description: Start the RAID control for the storiq system
+# Description:       RAID control for the storiq system
+### END INIT INFO
+
+NAME=raid_control
+DAEMON=/usr/sbin/$NAME
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        # Creation du fichier de conf pour le control    	
+        if [ ! -f /etc/storiq/control.conf ]; then
+            $DAEMON --detect > /etc/storiq/control.conf
+        fi
+
+        log_daemon_msg "Checking the RAID status"
+        $DAEMON -format alert 2>&1
+        log_end_msg $?
+
+        ERRMESSAGE=`$DAEMON 2>&1`
+        RETCODE=$?
+
+        case $RETCODE in
+            1)
+                log_begin_msg -e "\t$ERRMESSAGE"
+                log_end_msg $RETCODE
+            ;;
+            2)
+                log_begin_msg -e "\t$ERRMESSAGE"
+                log_end_msg $RETCODE
+            ;;
+            3)
+                log_begin_msg -e "\t$ERRMESSAGE"
+                log_end_msg 1
+            ;;
+        esac
+    ;;
+    *)
+        echo "Usage: $SCRIPTNAME start" >&2
+        exit 3
+    ;;
+esac
+:
