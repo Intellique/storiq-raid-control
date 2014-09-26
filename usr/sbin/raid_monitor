@@ -7,7 +7,7 @@ use warnings;
 use Sys::Syslog;
 use raid_control;
 
-use Objet_Alerte;    # Objet d envoie d email Intellique
+use Objet_Alerte;    # Objet d envoi d email Intellique
 
 #########################
 

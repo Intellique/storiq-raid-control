@@ -14,7 +14,7 @@ use strict;
 use Data::Dumper;
 use Lib_Raid_Rpc;
 use lib_raid_plugins::lib_raid_codes;
-use Objet_Alerte;    # Objet d envoie d email Intellique
+use Objet_Alerte;    # Objet d envoi d email Intellique
 
 use POSIX('strftime');
 

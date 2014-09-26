@@ -1,10 +1,10 @@
 Package: storiq-raid-control
-Version: 2.3.7
+Version: 2.4-1
 Section: Intellique
 Priority: optional
 Architecture: all
 Pre-Depends: linux-kernel-log-daemon, system-log-daemon
-Depends: storiq-lib-raid, storiq-objet-alerte(>=2.1.3), storiq-objet-conf(>=1.2)
+Depends: storiq-lib-raid, storiq-objet-alerte(>=2.2), storiq-objet-conf(>=1.2)
 Conflicts: raid-control
 Replaces: raid-control, storiq-control-disk
 Maintainer: Developpers Team <dev@intellique.com>
