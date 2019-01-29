@@ -1,0 +1,15 @@
+# systemd service for managing storiq raid monitor
+
+[Unit]
+Description=Storiq Raid Control
+After=raid_daemon.service
+Before=raid_monitor.service
+
+[Service]
+Type=oneshot
+ExecStartPre=test ! -f /etc/storiq/control.conf && /usr/sbin/raid_control --detect > /etc/storiq/control.conf
+ExecStart=/usr/sbin/raid_control -format alert 2
+
+[Install]
+WantedBy=multi-user.target
+

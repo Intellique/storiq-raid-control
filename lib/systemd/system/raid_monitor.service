@@ -1,0 +1,13 @@
+# systemd service for managing storiq raid monitor
+
+[Unit]
+Description=Storiq Raid Monitor
+After=raid_daemon.service
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/raid_monitor
+
+[Install]
+WantedBy=multi-user.target
+
