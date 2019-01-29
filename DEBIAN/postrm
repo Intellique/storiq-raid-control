@@ -1,6 +1,7 @@
 #!/bin/sh
 
-/etc/init.d/raid_monitor stop
+systemctl stop raid_monitor
+systemctl daemon-reload
 
 grep -v "raid_monitor" /etc/syslog.conf > /etc/syslog.conf.tmp
 rm -f /etc/syslog.conf

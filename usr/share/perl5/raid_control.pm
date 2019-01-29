@@ -13,7 +13,7 @@ package raid_control;
 use strict;
 use Data::Dumper;
 use Lib_Raid_Rpc;
-use lib_raid_plugins::lib_raid_codes;
+use Lib_Raid::lib_raid_codes;
 use Objet_Alerte;    # Objet d envoi d email Intellique
 
 use POSIX('strftime');

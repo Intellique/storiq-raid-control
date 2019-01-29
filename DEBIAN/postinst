@@ -49,19 +49,11 @@ elif [  -f /usr/sbin/rsyslogd ]; then
 fi
 	
 
-if [ -e "/sbin/chkconfig" ] ; then
-    /sbin/chkconfig raid_monitor on
-    /sbin/chkconfig raid_control on
-else
-    rm -f /etc/rc*.d/*raid_monitor
-    /bin/ln -s /etc/init.d/raid_monitor  /etc/rc0.d/K94raid_monitor
-    /bin/ln -s /etc/init.d/raid_monitor  /etc/rc1.d/K94raid_monitor
-    /bin/ln -s /etc/init.d/raid_monitor  /etc/rcS.d/S30raid_monitor
-    /bin/ln -s /etc/init.d/raid_monitor  /etc/rc6.d/K94raid_monitor
+rm -f /etc/rc*.d/*raid_monitor
 
-    /bin/ln -s /etc/init.d/raid_control  /etc/rc3.d/S90raid_control
-    /bin/ln -s /etc/init.d/raid_control  /etc/rc4.d/S90raid_control
-    /bin/ln -s /etc/init.d/raid_control  /etc/rc5.d/S90raid_control
-fi
+systemctl daemon-reload
 
-/etc/init.d/raid_monitor	start
+systemctl start raid_control
+systemctl enable raid_monitor
+systemctl start raid_monitor
+
